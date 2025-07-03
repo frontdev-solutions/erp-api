@@ -20,7 +20,7 @@ export class WarehouseController {
   }
 
   @Put('warehouse/:id')
-  updateWarehouse(@Param() id: string, @Body() dto: WarehouseDto) {
+  updateWarehouse(@Param('id') id: string, @Body() dto: WarehouseDto) {
     return this.warehouseService.updateWarehouse(id, dto);
   }
 
@@ -30,12 +30,12 @@ export class WarehouseController {
   }
 
   @Get('warehouse/:id')
-  getDetailWarehouse(@Param() id: string) {
+  getDetailWarehouse(@Param('id') id: string) {
     return this.warehouseService.getDetailWarehouse(id);
   }
 
   @Delete('warehouse/:id')
-  deleteWarehouse(@Param() id: string) {
+  deleteWarehouse(@Param('id') id: string) {
     return this.warehouseService.deleteWarehouse(id);
   }
 }
