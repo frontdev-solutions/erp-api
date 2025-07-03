@@ -144,6 +144,10 @@ export class UsersService {
       },
     });
 
+    if (!userDetail) {
+      throw new NotFoundException(`User with ${id} not found!`);
+    }
+
     return {
       data: userDetail,
       meta: {
