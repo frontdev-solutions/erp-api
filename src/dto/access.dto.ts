@@ -6,6 +6,14 @@ export class CreateAccessDto {
   name: string;
 
   @IsString()
+  @IsNotEmpty()
+  resource: string;
+
+  @IsString()
+  @IsNotEmpty()
+  action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
+
+  @IsString()
   @IsOptional()
   description?: string;
 }
