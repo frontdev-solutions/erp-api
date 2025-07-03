@@ -13,7 +13,7 @@ export class RoleService {
       data: {
         name,
         displayName,
-        active: active ?? true,
+        active,
       },
       include: {
         accesses: true,
@@ -76,7 +76,7 @@ export class RoleService {
       data: {
         name,
         displayName,
-        active: active ?? true,
+        active,
       },
       where: {
         id,
