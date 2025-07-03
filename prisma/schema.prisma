@@ -73,6 +73,7 @@ model AccessesOnRole {
 model Warehouse {
   id        String    @unique @default(uuid())
   name      String
+  location  String
   products  Product[]
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
