@@ -156,6 +156,10 @@ export class RoleService {
       },
     });
 
+    if (!role) {
+      throw new NotFoundException(`Role with ${id} not found!`);
+    }
+
     return {
       data: role,
       meta: {
