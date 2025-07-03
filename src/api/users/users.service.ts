@@ -10,13 +10,23 @@ export class UsersService {
     const { name, password, email, phoneNumber, active, roleId, userImage } =
       dto;
 
+    const checkRole = await this.prisma.role.findUnique({
+      where: {
+        id: roleId,
+      },
+    });
+
+    if (!checkRole) {
+      throw new NotFoundException(`Role with ${roleId} not found!`);
+    }
+
     const user = await this.prisma.user.create({
       data: {
         name,
         password,
         email,
         phoneNumber,
-        active: active ?? null,
+        active,
         roleId: roleId ?? null,
         userImage: userImage ?? null,
       },
@@ -39,6 +49,16 @@ export class UsersService {
   async updateUser(id: string, dto: UpdateUserDto) {
     const { name, email, phoneNumber, active, roleId, userImage } = dto;
 
+    const checkRole = await this.prisma.role.findUnique({
+      where: {
+        id: roleId,
+      },
+    });
+
+    if (!checkRole) {
+      throw new NotFoundException(`Role with ${roleId} not found!`);
+    }
+
     const checkUser = await this.prisma.user.findUnique({
       where: {
         id,
@@ -57,9 +77,9 @@ export class UsersService {
         name,
         email,
         phoneNumber,
-        active: active ?? null,
-        roleId: roleId ? roleId : null,
-        userImage: userImage ? userImage : null,
+        active,
+        roleId: roleId ?? null,
+        userImage: userImage ?? null,
       },
       include: {
         role: true,
