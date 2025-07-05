@@ -13,6 +13,11 @@ model User {
   phoneNumber   String
   password      String
   email         String          @unique
+  address       String?
+  birthDate     String?
+  birthPlace    String?
+  gender        Gender?
+  joinAt        DateTime?
   roleId        String?
   updatedAt     DateTime        @updatedAt
   createdAt     DateTime        @default(now())
@@ -62,7 +67,7 @@ model Warehouse {
   name      String
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
-  location  String
+  address   String
   products  Product[]
 }
 
@@ -167,4 +172,9 @@ enum OrderStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
