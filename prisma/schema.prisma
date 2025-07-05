@@ -9,7 +9,9 @@ datasource db {
 
 model User {
   id            String          @unique @default(uuid())
-  name          String
+  firstName     String
+  lastName      String
+  sureName      String
   phoneNumber   String
   password      String
   email         String          @unique
@@ -29,14 +31,14 @@ model User {
 }
 
 model Role {
-  id          String           @unique @default(uuid())
-  name        String           @unique
-  updatedAt   DateTime         @updatedAt
-  createdAt   DateTime         @default(now())
-  active      Boolean          @default(true)
-  displayName String           @unique
-  accesses    AccessesOnRole[]
-  users       User[]
+  id        String           @unique @default(uuid())
+  code      String           @unique
+  name      String           @unique
+  updatedAt DateTime         @updatedAt
+  createdAt DateTime         @default(now())
+  active    Boolean          @default(true)
+  accesses  AccessesOnRole[]
+  users     User[]
 }
 
 model Access {
@@ -65,6 +67,7 @@ model AccessesOnRole {
 model Warehouse {
   id        String    @unique @default(uuid())
   name      String
+  code      String    @unique
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
   address   String
@@ -74,6 +77,7 @@ model Warehouse {
 model Product {
   id             String           @unique @default(uuid())
   name           String
+  code           String           @unique
   qty            Int
   price          Float
   updateAt       DateTime         @updatedAt
@@ -87,10 +91,18 @@ model Product {
   unitConversion UnitConversion[]
 }
 
+model Category {
+  id        String   @unique @default(uuid())
+  name      String
+  code      String   @unique
+  updateAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 model Unit {
   id              String           @id @default(uuid())
-  name            String           @unique
-  displayName     String
+  code            String           @unique
+  name            String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   products        Product[]
