@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from 'src/dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
+import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -129,16 +131,38 @@ export class RoleService {
     };
   }
 
-  async getListRole() {
-    const roles = await this.prisma.role.findMany({
-      include: {
-        accesses: true,
-      },
-    });
+  async getListRole(pagination: PaginationDto) {
+    const { page, limit, order, orderBy } = pagination;
+
+    const allowedOrderFields = [
+      'name',
+      'displayName',
+      'createdAt',
+      'updatedAt',
+    ];
+
+    if (!allowedOrderFields.includes(orderBy)) {
+      throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
+    }
+
+    const [total, data] = await this.prisma.$transaction([
+      this.prisma.role.count(),
+      this.prisma.role.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          [orderBy]: order,
+        },
+        include: {
+          accesses: true,
+        },
+      }),
+    ]);
 
     return {
       data: {
-        data: roles,
+        data,
+        meta: paginationMeta(total, page, limit),
       },
       meta: {
         version: '1.0.0',

@@ -6,9 +6,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto } from 'src/dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller()
 export class RoleController {
@@ -25,8 +27,8 @@ export class RoleController {
   }
 
   @Get('role')
-  getListRole() {
-    return this.roleService.getListRole();
+  getListRole(@Query() pagination: PaginationDto) {
+    return this.roleService.getListRole(pagination);
   }
 
   @Get('role/:id')

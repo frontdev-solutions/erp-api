@@ -6,9 +6,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ProductDto } from 'src/dto/product.dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller()
 export class ProductController {
@@ -25,8 +27,8 @@ export class ProductController {
   }
 
   @Get('product')
-  getListProduct() {
-    return this.productService.getListProduct();
+  getListProduct(@Query() pagination: PaginationDto) {
+    return this.productService.getListProduct(pagination);
   }
 
   @Get('product/:id')

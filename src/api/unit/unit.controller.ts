@@ -6,9 +6,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { UnitConversionDto, UnitDto } from 'src/dto/unit.dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller()
 export class UnitController {
@@ -37,8 +39,8 @@ export class UnitController {
   }
 
   @Get('unit')
-  async getListUnit() {
-    return this.unitService.getListUnit();
+  async getListUnit(@Query() pagination: PaginationDto) {
+    return this.unitService.getListUnit(pagination);
   }
 
   @Get('unit/:id')

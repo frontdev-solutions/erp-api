@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { LoginDto } from 'src/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { signJwt } from 'src/services/jwt-token';
+import { signJwt } from 'src/helpers/jwt-token';
 
 @Injectable()
 export class AuthService {

@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationDto } from 'src/dto/pagination.dto';
 import { UnitConversionDto, UnitDto } from 'src/dto/unit.dto';
+import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -141,12 +143,24 @@ export class UnitService {
     };
   }
 
-  async getListUnit() {
-    const units = await this.prisma.unit.findMany();
+  async getListUnit(pagination: PaginationDto) {
+    const { page, limit, order, orderBy } = pagination;
+
+    const [total, data] = await this.prisma.$transaction([
+      this.prisma.unit.count(),
+      this.prisma.unit.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          [orderBy]: order,
+        },
+      }),
+    ]);
 
     return {
       data: {
-        data: units,
+        data,
+        meta: paginationMeta(total, page, limit),
       },
       meta: {
         version: '1.0.0',

@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UnitConversion } from '@prisma/client';
+import { PaginationDto } from 'src/dto/pagination.dto';
 import { ProductDto } from 'src/dto/product.dto';
+import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -111,21 +113,24 @@ export class ProductService {
           product: {
             ...product,
             smallestUnit: undefined,
-          },
-          unitInfo: {
-            inputQty: qty,
-            factor,
-            qtySmallestUnit,
-            isManual: conversion.isManual,
-            baseUnit: {
-              id: baseUnit.id,
-              name: baseUnit.name,
-              displayName: baseUnit.displayName,
-            },
-            smallestUnit: {
-              id: smallestUnit.id,
-              name: smallestUnit.name,
-              displayName: smallestUnit.displayName,
+            smallestUnitId: undefined,
+            unitInfo: {
+              inputQty: qty,
+              factor,
+              qtySmallestUnit,
+              isManual: conversion.isManual,
+              baseUnit: {
+                ...baseUnit,
+                id: baseUnit.id,
+                name: baseUnit.name,
+                displayName: baseUnit.displayName,
+              },
+              smallestUnit: {
+                ...smallestUnit,
+                id: smallestUnit.id,
+                name: smallestUnit.name,
+                displayName: smallestUnit.displayName,
+              },
             },
           },
         },
@@ -201,7 +206,6 @@ export class ProductService {
         include: {
           smallestUnit: true,
           warehouse: true,
-          unitConversion: true,
         },
       });
 
@@ -249,22 +253,24 @@ export class ProductService {
           product: {
             ...product,
             smallestUnit: undefined,
-            unitConversion: undefined,
-          },
-          unitInfo: {
-            inputQty: qty,
-            factor,
-            qtySmallestUnit,
-            isManual: conversion.isManual,
-            baseUnit: {
-              id: baseUnit.id,
-              name: baseUnit.name,
-              displayName: baseUnit.displayName,
-            },
-            smallestUnit: {
-              id: smallestUnit.id,
-              name: smallestUnit.name,
-              displayName: smallestUnit.displayName,
+            smallestUnitId: undefined,
+            unitInfo: {
+              inputQty: qty,
+              factor,
+              qtySmallestUnit,
+              isManual: conversion.isManual,
+              baseUnit: {
+                ...baseUnit,
+                id: baseUnit.id,
+                name: baseUnit.name,
+                displayName: baseUnit.displayName,
+              },
+              smallestUnit: {
+                ...smallestUnit,
+                id: smallestUnit.id,
+                name: smallestUnit.name,
+                displayName: smallestUnit.displayName,
+              },
             },
           },
         },
@@ -275,13 +281,36 @@ export class ProductService {
     });
   }
 
-  async getListProduct() {
-    const products = await this.prisma.product.findMany({
-      include: {
-        smallestUnit: true,
-        warehouse: true,
-      },
-    });
+  async getListProduct(pagination: PaginationDto) {
+    const { page, limit, order, orderBy } = pagination;
+
+    const allowedOrderFields = [
+      'name',
+      'productSku',
+      'price',
+      'qty',
+      'createdAt',
+      'updatedAt',
+    ];
+
+    if (!allowedOrderFields.includes(orderBy)) {
+      throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
+    }
+
+    const [total, products] = await this.prisma.$transaction([
+      this.prisma.product.count(),
+      this.prisma.product.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          [orderBy]: order,
+        },
+        include: {
+          smallestUnit: true,
+          warehouse: true,
+        },
+      }),
+    ]);
 
     const mappingProducts = await Promise.all(
       products.map(async (item) => {
@@ -298,6 +327,7 @@ export class ProductService {
         return {
           ...item,
           smallestUnit: undefined,
+          smallestUnitId: undefined,
           unitInfo: factorUnit
             ? {
                 inputQty: item.qty,
@@ -319,9 +349,7 @@ export class ProductService {
     return {
       data: {
         data: mappingProducts,
-        meta: {
-          total: mappingProducts.length,
-        },
+        meta: paginationMeta(total, page, limit),
       },
       meta: {
         version: '1.0.0',
@@ -356,6 +384,7 @@ export class ProductService {
       data: {
         ...product,
         smallestUnit: undefined,
+        smallestUnitId: undefined,
         unitInfo: factorUnit
           ? {
               inputQty: product.qty,

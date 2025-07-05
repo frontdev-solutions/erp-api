@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from 'src/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { PaginationDto } from 'src/dto/pagination.dto';
+import { paginationMeta } from 'src/helpers/pagination';
 
 @Injectable()
 export class UsersService {
@@ -112,14 +114,29 @@ export class UsersService {
     }
   }
 
-  async getListUser() {
-    const user = await this.prisma.user.findMany({
-      include: {
-        role: true,
-      },
-    });
+  async getListUser(pagination: PaginationDto) {
+    const { page, limit, order, orderBy } = pagination;
 
-    const dropPassword = user.map((data) => ({
+    const allowedOrderFields = ['name', 'email', 'createdAt', 'updatedAt'];
+
+    if (!allowedOrderFields.includes(orderBy)) {
+      throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
+    }
+    const [total, data] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.user.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          [orderBy]: order,
+        },
+        include: {
+          role: true,
+        },
+      }),
+    ]);
+
+    const dropPassword = data.map((data) => ({
       ...data,
       password: undefined,
     }));
@@ -127,6 +144,7 @@ export class UsersService {
     return {
       data: {
         data: dropPassword,
+        meta: paginationMeta(total, page, limit),
       },
       meta: {
         version: '1.0.0',

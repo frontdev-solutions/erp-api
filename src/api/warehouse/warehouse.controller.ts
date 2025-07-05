@@ -6,9 +6,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { WarehouseService } from './warehouse.service';
 import { WarehouseDto } from 'src/dto/warehouse.dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller()
 export class WarehouseController {
@@ -25,8 +27,8 @@ export class WarehouseController {
   }
 
   @Get('warehouse')
-  getListWarehouse() {
-    return this.warehouseService.getListWarehouse();
+  getListWarehouse(@Query() pagination: PaginationDto) {
+    return this.warehouseService.getListWarehouse(pagination);
   }
 
   @Get('warehouse/:id')

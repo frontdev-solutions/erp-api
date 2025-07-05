@@ -6,35 +6,37 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from 'src/dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller()
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Post('users')
+  @Post('user')
   createUser(@Body() dto: CreateUserDto) {
     return this.usersService.createUser(dto);
   }
 
-  @Put('users/:id')
+  @Put('user/:id')
   updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.updateUser(id, dto);
   }
 
-  @Get('users')
-  getListUser() {
-    return this.usersService.getListUser();
+  @Get('user')
+  getListUser(@Query() pagination: PaginationDto) {
+    return this.usersService.getListUser(pagination);
   }
 
-  @Get('users/:id')
+  @Get('user/:id')
   getDetailUser(@Param('id') id: string) {
     return this.usersService.getDetailUser(id);
   }
 
-  @Delete('users/:id')
+  @Delete('user/:id')
   deleteUser(@Param('id') id: string) {
     return this.usersService.deleteUser(id);
   }
