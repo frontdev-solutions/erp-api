@@ -1,7 +1,433 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { UnitConversion } from '@prisma/client';
+import { ProductDto } from 'src/dto/product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ProductService {
   constructor(private prisma: PrismaService) {}
+
+  async createProduct(dto: ProductDto) {
+    const {
+      name,
+      qty,
+      price,
+      productSku,
+      baseUnitId,
+      smallestUnitId,
+      isManual,
+      factor,
+      warehouseId,
+    } = dto;
+
+    // 1. Validasi unit
+    const [baseUnit, smallestUnit] = await Promise.all([
+      this.prisma.unit.findUnique({ where: { id: baseUnitId } }),
+      this.prisma.unit.findUnique({ where: { id: smallestUnitId } }),
+    ]);
+
+    if (!baseUnit || !smallestUnit) {
+      throw new NotFoundException('Base unit or smallest unit not found.');
+    }
+
+    // 2. Validasi isManual
+    let conversionFactor = 1;
+    if (isManual) {
+      if (!factor || factor <= 0) {
+        throw new NotFoundException(
+          'Conversion factor is required for manual conversion.',
+        );
+      }
+      conversionFactor = factor;
+    } else {
+      conversionFactor = await this.computeConversionFactor(
+        baseUnitId,
+        smallestUnitId,
+      );
+    }
+
+    // 3. Hitung qty konversi
+    const qtySmallestUnit = qty * conversionFactor;
+
+    // 4. Jalankan transaksi
+    return this.prisma.$transaction(async (tx) => {
+      // 4a. Insert produk
+      const product = await tx.product.create({
+        data: {
+          name,
+          qty,
+          price,
+          productSku,
+          smallestUnitId,
+          warehouseId: warehouseId ?? null,
+        },
+        include: {
+          smallestUnit: true,
+          warehouse: true,
+        },
+      });
+
+      // 4b. Kalau manual conversion, insert UnitConversion
+      let conversion: UnitConversion | null = null;
+
+      if (isManual && product.id) {
+        conversion = await tx.unitConversion.create({
+          data: {
+            fromUnitId: baseUnitId,
+            toUnitId: smallestUnitId,
+            factor,
+            isManual: true,
+            productId: product.id,
+          },
+          include: {
+            fromUnit: true,
+            toUnit: true,
+          },
+        });
+      } else {
+        conversion = await tx.unitConversion.findFirst({
+          where: {
+            fromUnitId: baseUnitId,
+            toUnitId: smallestUnitId,
+            isManual: false,
+            productId: null,
+          },
+          include: {
+            fromUnit: true,
+            toUnit: true,
+          },
+        });
+      }
+
+      if (!conversion) {
+        throw new NotFoundException(
+          `No automatic conversion found from ${baseUnitId} to ${smallestUnitId}`,
+        );
+      }
+
+      // 5. Return response lengkap
+      return {
+        data: {
+          product: {
+            ...product,
+            smallestUnit: undefined,
+          },
+          unitInfo: {
+            inputQty: qty,
+            factor,
+            qtySmallestUnit,
+            isManual: conversion.isManual,
+            baseUnit: {
+              id: baseUnit.id,
+              name: baseUnit.name,
+              displayName: baseUnit.displayName,
+            },
+            smallestUnit: {
+              id: smallestUnit.id,
+              name: smallestUnit.name,
+              displayName: smallestUnit.displayName,
+            },
+          },
+        },
+        meta: {
+          version: '1.0.0',
+        },
+      };
+    });
+  }
+
+  async updateProduct(id: string, dto: ProductDto) {
+    const {
+      name,
+      qty,
+      price,
+      productSku,
+      baseUnitId,
+      smallestUnitId,
+      isManual,
+      factor,
+      warehouseId,
+    } = dto;
+
+    // 1. Validasi unit
+    const [baseUnit, smallestUnit] = await Promise.all([
+      this.prisma.unit.findUnique({ where: { id: baseUnitId } }),
+      this.prisma.unit.findUnique({ where: { id: smallestUnitId } }),
+    ]);
+
+    if (!baseUnit || !smallestUnit) {
+      throw new NotFoundException('Base unit or smallest unit not found.');
+    }
+
+    // 2. Validasi isManual
+    let conversionFactor = 1;
+    if (isManual) {
+      if (!factor || factor <= 0) {
+        throw new NotFoundException(
+          'Conversion factor is required for manual conversion.',
+        );
+      }
+      conversionFactor = factor;
+    } else {
+      conversionFactor = await this.computeConversionFactor(
+        baseUnitId,
+        smallestUnitId,
+      );
+    }
+
+    // 3. Hitung qty konversi
+    const qtySmallestUnit = qty * conversionFactor;
+
+    // 4. Jalankan transaksi
+    return this.prisma.$transaction(async (tx) => {
+      const checkProduct = await tx.product.findUnique({
+        where: { id },
+      });
+
+      if (!checkProduct) {
+        throw new NotFoundException(`Product with ${id} not found!`);
+      }
+      // 4a. Update produk
+      const product = await tx.product.update({
+        where: { id },
+        data: {
+          name,
+          qty,
+          price,
+          productSku,
+          smallestUnitId,
+          warehouseId: warehouseId ?? null,
+        },
+        include: {
+          smallestUnit: true,
+          warehouse: true,
+          unitConversion: true,
+        },
+      });
+
+      // 4b. Kalau manual conversion, insert UnitConversion
+      let conversion: UnitConversion | null = null;
+
+      if (isManual) {
+        conversion = await tx.unitConversion.create({
+          data: {
+            fromUnitId: baseUnitId,
+            toUnitId: smallestUnitId,
+            factor,
+            isManual: true,
+            productId: product.id,
+          },
+          include: {
+            fromUnit: true,
+            toUnit: true,
+          },
+        });
+      } else {
+        conversion = await tx.unitConversion.findFirst({
+          where: {
+            fromUnitId: baseUnitId,
+            toUnitId: smallestUnitId,
+            isManual: false,
+            productId: null,
+          },
+          include: {
+            fromUnit: true,
+            toUnit: true,
+          },
+        });
+      }
+
+      if (!conversion) {
+        throw new NotFoundException(
+          `No automatic conversion found from ${baseUnitId} to ${smallestUnitId}`,
+        );
+      }
+
+      // 5. Return response lengkap
+      return {
+        data: {
+          product: {
+            ...product,
+            smallestUnit: undefined,
+            unitConversion: undefined,
+          },
+          unitInfo: {
+            inputQty: qty,
+            factor,
+            qtySmallestUnit,
+            isManual: conversion.isManual,
+            baseUnit: {
+              id: baseUnit.id,
+              name: baseUnit.name,
+              displayName: baseUnit.displayName,
+            },
+            smallestUnit: {
+              id: smallestUnit.id,
+              name: smallestUnit.name,
+              displayName: smallestUnit.displayName,
+            },
+          },
+        },
+        meta: {
+          version: '1.0.0',
+        },
+      };
+    });
+  }
+
+  async getListProduct() {
+    const products = await this.prisma.product.findMany({
+      include: {
+        smallestUnit: true,
+        warehouse: true,
+      },
+    });
+
+    const mappingProducts = await Promise.all(
+      products.map(async (item) => {
+        const factorUnit = await this.prisma.unitConversion.findFirst({
+          where: {
+            toUnitId: item.smallestUnitId,
+          },
+          include: {
+            fromUnit: true,
+            toUnit: true,
+          },
+        });
+
+        return {
+          ...item,
+          smallestUnit: undefined,
+          unitInfo: factorUnit
+            ? {
+                inputQty: item.qty,
+                factor: factorUnit.factor,
+                qtySmallestUnit: item.qty * factorUnit.factor,
+                baseUnit: {
+                  ...factorUnit.fromUnit,
+                  id: factorUnit.fromUnit.id,
+                  name: factorUnit.fromUnit.name,
+                  displayName: factorUnit.fromUnit.displayName,
+                },
+                smallestUnit: item.smallestUnit,
+              }
+            : null,
+        };
+      }),
+    );
+
+    return {
+      data: {
+        data: mappingProducts,
+        meta: {
+          total: mappingProducts.length,
+        },
+      },
+      meta: {
+        version: '1.0.0',
+      },
+    };
+  }
+
+  async getDetailProduct(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        warehouse: true,
+        smallestUnit: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found!`);
+    }
+
+    const factorUnit = await this.prisma.unitConversion.findFirst({
+      where: {
+        toUnitId: product.smallestUnitId,
+      },
+      include: {
+        fromUnit: true,
+        toUnit: true,
+      },
+    });
+
+    return {
+      data: {
+        ...product,
+        smallestUnit: undefined,
+        unitInfo: factorUnit
+          ? {
+              inputQty: product.qty,
+              factor: factorUnit.factor,
+              qtySmallestUnit: product.qty * factorUnit.factor,
+              baseUnit: {
+                ...factorUnit.fromUnit,
+                id: factorUnit.fromUnit.id,
+                name: factorUnit.fromUnit.name,
+                displayName: factorUnit.fromUnit.displayName,
+              },
+              smallestUnit: product.smallestUnit,
+            }
+          : null,
+      },
+    };
+  }
+
+  async deleteProduct(id: string) {
+    const checkProduct = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!checkProduct) {
+      throw new NotFoundException(`Product with ${id} not found!`);
+    }
+
+    await this.prisma.product.delete({
+      where: { id },
+    });
+
+    return {
+      data: 'Data has been deleted!',
+      meta: {
+        version: '1.0.0',
+      },
+    };
+  }
+
+  private async computeConversionFactor(
+    fromUnitId: string,
+    toUnitId: string,
+    visited = new Set<string>(),
+  ): Promise<number> {
+    if (fromUnitId === toUnitId) return 1;
+
+    if (visited.has(fromUnitId)) {
+      throw new Error('Circular conversion detected.');
+    }
+    visited.add(fromUnitId);
+
+    const direct = await this.prisma.unitConversion.findFirst({
+      where: {
+        fromUnitId,
+        toUnitId,
+      },
+    });
+    if (direct) return direct.factor;
+
+    const nextConversions = await this.prisma.unitConversion.findMany({
+      where: { fromUnitId },
+    });
+
+    for (const conv of nextConversions) {
+      const subFactor = await this.computeConversionFactor(
+        conv.toUnitId,
+        toUnitId,
+        visited,
+      );
+      return conv.factor * subFactor;
+    }
+
+    throw new Error(`No conversion path from ${fromUnitId} to ${toUnitId}.`);
+  }
 }
