@@ -9,12 +9,12 @@ export class RoleService {
   constructor(private prisma: PrismaService) {}
 
   async createRole(dto: CreateRoleDto) {
-    const { name, displayName, active, accesses } = dto;
+    const { name, code, active, accesses } = dto;
 
     const role = await this.prisma.role.create({
       data: {
         name,
-        displayName,
+        code,
         active,
       },
       include: {
@@ -62,7 +62,7 @@ export class RoleService {
   }
 
   async updateRole(id: string, dto: CreateRoleDto) {
-    const { name, displayName, active, accesses } = dto;
+    const { name, code, active, accesses } = dto;
 
     const checkRole = await this.prisma.role.findUnique({
       where: {
@@ -77,7 +77,7 @@ export class RoleService {
     const role = await this.prisma.role.update({
       data: {
         name,
-        displayName,
+        code,
         active,
       },
       where: {
@@ -134,12 +134,7 @@ export class RoleService {
   async getListRole(pagination: PaginationDto) {
     const { page, limit, order, orderBy } = pagination;
 
-    const allowedOrderFields = [
-      'name',
-      'displayName',
-      'createdAt',
-      'updatedAt',
-    ];
+    const allowedOrderFields = ['name', 'code', 'createdAt', 'updatedAt'];
 
     if (!allowedOrderFields.includes(orderBy)) {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);

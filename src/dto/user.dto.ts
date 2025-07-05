@@ -5,19 +5,29 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MinLength,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  sureName: string;
+
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
   @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsString()
+  @MinLength(5)
   @IsNotEmpty()
   password: string;
 
@@ -43,7 +53,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  gender?: string;
+  gender?: 'MALE' | 'FEMALE';
 
   @IsOptional()
   @IsDateString()

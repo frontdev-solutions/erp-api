@@ -93,16 +93,16 @@ export class UnitService {
 
   /* Unit Service */
   async createUnit(dto: UnitDto) {
-    const { name, displayName } = dto;
+    const { name, code } = dto;
 
-    if (!name || !displayName) {
+    if (!name || !code) {
       throw new NotFoundException('Name and Display Name are required');
     }
 
     const newUnit = await this.prisma.unit.create({
       data: {
         name,
-        displayName,
+        code,
       },
     });
 
@@ -115,7 +115,7 @@ export class UnitService {
   }
 
   async updateUnit(id: string, dto: UnitDto) {
-    const { name, displayName } = dto;
+    const { name, code } = dto;
 
     const checkUnit = await this.prisma.unit.findUnique({
       where: {
@@ -131,7 +131,7 @@ export class UnitService {
       where: { id },
       data: {
         name,
-        displayName,
+        code,
       },
     });
 

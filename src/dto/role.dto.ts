@@ -16,7 +16,7 @@ export class CreateRoleDto {
 
   @IsString()
   @IsNotEmpty()
-  displayName: string;
+  code: string;
 
   @IsBoolean()
   @IsOptional()

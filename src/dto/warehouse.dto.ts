@@ -7,5 +7,9 @@ export class WarehouseDto {
 
   @IsString()
   @IsNotEmpty()
+  code: string;
+
+  @IsString()
+  @IsNotEmpty()
   address: string;
 }

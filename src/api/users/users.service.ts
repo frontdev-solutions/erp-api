@@ -10,8 +10,22 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async createUser(dto: CreateUserDto) {
-    const { name, password, email, phoneNumber, active, roleId, userImage } =
-      dto;
+    const {
+      firstName,
+      lastName,
+      sureName,
+      address,
+      birthDate,
+      birthPlace,
+      gender,
+      joinAt,
+      password,
+      email,
+      phoneNumber,
+      active,
+      roleId,
+      userImage,
+    } = dto;
 
     const checkUser = await this.prisma.user.findUnique({
       where: {
@@ -37,7 +51,14 @@ export class UsersService {
 
     const user = await this.prisma.user.create({
       data: {
-        name,
+        firstName,
+        lastName,
+        sureName,
+        address,
+        birthDate,
+        birthPlace,
+        gender,
+        joinAt,
         password: hashPassword,
         email,
         phoneNumber,
@@ -62,7 +83,21 @@ export class UsersService {
   }
 
   async updateUser(id: string, dto: UpdateUserDto) {
-    const { name, email, phoneNumber, active, roleId, userImage } = dto;
+    const {
+      firstName,
+      lastName,
+      sureName,
+      address,
+      birthDate,
+      birthPlace,
+      gender,
+      joinAt,
+      email,
+      phoneNumber,
+      active,
+      roleId,
+      userImage,
+    } = dto;
 
     const checkRole = await this.prisma.role.findUnique({
       where: {
@@ -89,7 +124,14 @@ export class UsersService {
         id,
       },
       data: {
-        name,
+        firstName,
+        lastName,
+        sureName,
+        address,
+        birthDate,
+        birthPlace,
+        gender,
+        joinAt,
         email,
         phoneNumber,
         active,
