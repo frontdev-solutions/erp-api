@@ -9,12 +9,12 @@ export class WarehouseService {
   constructor(private prisma: PrismaService) {}
 
   async createWarehouse(dto: WarehouseDto) {
-    const { name, location } = dto;
+    const { name, address } = dto;
 
     const newWarehouse = await this.prisma.warehouse.create({
       data: {
         name,
-        location,
+        address,
       },
     });
 
@@ -27,7 +27,7 @@ export class WarehouseService {
   }
 
   async updateWarehouse(id: string, dto: WarehouseDto) {
-    const { name, location } = dto;
+    const { name, address } = dto;
 
     const checkWarehouse = await this.prisma.warehouse.findUnique({
       where: {
@@ -43,7 +43,7 @@ export class WarehouseService {
       where: { id },
       data: {
         name,
-        location,
+        address,
       },
     });
 

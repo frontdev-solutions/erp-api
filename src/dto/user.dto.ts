@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -27,6 +28,26 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   userImage?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  birthDate?: string;
+
+  @IsOptional()
+  @IsString()
+  birthPlace?: string;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @IsOptional()
+  @IsDateString()
+  joinAt?: string;
 
   @IsOptional()
   @IsString()
