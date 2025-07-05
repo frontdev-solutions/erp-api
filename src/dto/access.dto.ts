@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export enum ActionEnum {
+  CREATE = 'CREATE',
+  READ = 'READ',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+}
 
 export class CreateAccessDto {
   @IsString()
@@ -9,9 +16,9 @@ export class CreateAccessDto {
   @IsNotEmpty()
   resource: string;
 
-  @IsString()
+  @IsEnum(ActionEnum)
   @IsNotEmpty()
-  action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
+  action: ActionEnum;
 
   @IsString()
   @IsOptional()

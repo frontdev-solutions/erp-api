@@ -2,12 +2,18 @@ import {
   IsBoolean,
   IsDateString,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+
+export enum GenderEnum {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
 
 export class CreateUserDto {
   @IsString()
@@ -52,8 +58,8 @@ export class CreateUserDto {
   birthPlace?: string;
 
   @IsOptional()
-  @IsString()
-  gender?: 'MALE' | 'FEMALE';
+  @IsEnum(GenderEnum)
+  gender?: GenderEnum;
 
   @IsOptional()
   @IsDateString()
