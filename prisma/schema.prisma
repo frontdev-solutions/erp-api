@@ -7,19 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum AccessAction {
-  CREATE
-  READ
-  UPDATE
-  DELETE
-}
-
-enum OrderStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model User {
   id            String          @unique @default(uuid())
   name          String
@@ -30,10 +17,10 @@ model User {
   updatedAt     DateTime        @updatedAt
   createdAt     DateTime        @default(now())
   userImage     String?
-  visitOnClient VisitOnClient[]
-  orders        Order[]
   active        Boolean         @default(true)
-  role          Role?           @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orders        Order[]
+  role          Role?           @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  visitOnClient VisitOnClient[]
 }
 
 model Role {
@@ -51,10 +38,10 @@ model Access {
   id          String           @unique @default(uuid())
   name        String
   description String?
-  resource    String
-  action      AccessAction
   updatedAt   DateTime         @updatedAt
   createdAt   DateTime         @default(now())
+  action      AccessAction
+  resource    String
   roles       AccessesOnRole[]
 }
 
@@ -66,87 +53,118 @@ model AccessesOnRole {
   roleName   String
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
-  access     Access   @relation(fields: [accessId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  access     Access   @relation(fields: [accessId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
 }
 
 model Warehouse {
   id        String    @unique @default(uuid())
   name      String
-  location  String
-  products  Product[]
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
+  location  String
+  products  Product[]
 }
 
 model Product {
-  id          String      @unique @default(uuid())
-  name        String
-  qty         Int
-  price       Float
-  unitId      String
-  unit        Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  warehouseId String?
-  warehouse   Warehouse?  @relation(fields: [warehouseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  orderItems  OrderItem[]
-  updateAt    DateTime    @updatedAt
-  createdAt   DateTime    @default(now())
+  id             String           @unique @default(uuid())
+  name           String
+  qty            Int
+  price          Float
+  updateAt       DateTime         @updatedAt
+  createdAt      DateTime         @default(now())
+  warehouseId    String?
+  productSku     String
+  smallestUnitId String
+  orderItems     OrderItem[]
+  smallestUnit   Unit             @relation(fields: [smallestUnitId], references: [id], onDelete: Cascade)
+  warehouse      Warehouse?       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  unitConversion UnitConversion[]
 }
 
 model Unit {
-  id          String    @unique @default(uuid())
-  name        String
-  displayName String
-  updateAt    DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  products    Product[]
+  id              String           @id @default(uuid())
+  name            String           @unique
+  displayName     String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  products        Product[]
+  fromConversions UnitConversion[] @relation("FromUnit")
+  toConversions   UnitConversion[] @relation("ToUnit")
+}
+
+model UnitConversion {
+  id         String   @id @default(uuid())
+  fromUnitId String
+  toUnitId   String
+  factor     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isManual   Boolean  @default(false)
+  productId  String?
+  fromUnit   Unit     @relation("FromUnit", fields: [fromUnitId], references: [id])
+  product    Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  toUnit     Unit     @relation("ToUnit", fields: [toUnitId], references: [id])
 }
 
 model Client {
   id            String          @unique @default(uuid())
   name          String
   location      String
-  visitOnClient VisitOnClient[]
-  orders        Order[]
   updateAt      DateTime        @updatedAt
   createdAt     DateTime        @default(now())
+  orders        Order[]
+  visitOnClient VisitOnClient[]
 }
 
 model Order {
   id          String      @unique @default(uuid())
   clientId    String
-  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   salesId     String
-  sales       User        @relation(fields: [salesId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   totalAmount Float
   description String
   status      String
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  sales       User        @relation(fields: [salesId], references: [id], onDelete: Cascade)
   items       OrderItem[]
 }
 
 model OrderItem {
   id        String   @unique @default(uuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   qty       Int
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model VisitOnClient {
   id         String   @unique @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   clientId   String
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userImage  String
   latitude   Float
   longtitude Float
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AccessAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
