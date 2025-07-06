@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PaginationDto } from 'src/dto/pagination.dto';
-import { WarehouseDto } from 'src/dto/warehouse.dto';
+import { Prisma } from '@prisma/client';
+import { WarehouseDto, WarehouseQueryDto } from 'src/dto';
 import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -57,8 +57,8 @@ export class WarehouseService {
     };
   }
 
-  async getListWarehouse(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListWarehouse(query: WarehouseQueryDto) {
+    const { page, limit, order, orderBy, keyword } = query;
 
     const allowedOrderFields = ['name', 'createdAt', 'updatedAt'];
 
@@ -66,9 +66,20 @@ export class WarehouseService {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
     }
 
+    const where: Prisma.WarehouseWhereInput = {
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { code: { contains: keyword, mode: 'insensitive' } },
+          { address: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.warehouse.count(),
+      this.prisma.warehouse.count({ where }),
       this.prisma.warehouse.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {
