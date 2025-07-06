@@ -154,12 +154,30 @@ export class UnitService {
         orderBy: {
           [orderBy]: order,
         },
+        include: {
+          fromConversions: {
+            where: { isManual: true },
+            select: { id: true },
+          },
+          toConversions: {
+            where: { isManual: true },
+            select: { id: true },
+          },
+        },
       }),
     ]);
 
+    const mappedData = data.map((unit) => ({
+      ...unit,
+      fromConversions: undefined,
+      toConversions: undefined,
+      manualConversion:
+        unit.fromConversions.length > 0 || unit.toConversions.length > 0,
+    }));
+
     return {
       data: {
-        data,
+        data: mappedData,
         meta: paginationMeta(total, page, limit),
       },
       meta: {
