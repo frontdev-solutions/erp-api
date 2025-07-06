@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { PaginationDto } from './pagination.dto';
 
 export class UnitConversionDto {
   @IsString()
@@ -31,4 +32,10 @@ export class UnitDto {
   @IsString()
   @IsNotEmpty()
   code: string;
+}
+
+export class UnitQueryDto extends PaginationDto {
+  @IsString()
+  @IsOptional()
+  manualConversion?: string;
 }

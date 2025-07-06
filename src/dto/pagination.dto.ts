@@ -21,4 +21,8 @@ export class PaginationDto {
   @IsOptional()
   @IsString()
   orderBy?: string = 'createdAt';
+
+  @IsOptional()
+  @IsString()
+  keyword?: string;
 }

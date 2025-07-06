@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { PaginationDto } from './pagination.dto';
 
 export class ProductDto {
   @IsString()
@@ -43,4 +44,19 @@ export class ProductDto {
   @IsNumber()
   @IsOptional()
   productId?: string;
+}
+
+export class ProductQueryDto extends PaginationDto {
+  @IsString()
+  @IsOptional()
+  warehouseId?: string;
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
+  @IsString()
+  @IsOptional()
+  price?: number;
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
 }

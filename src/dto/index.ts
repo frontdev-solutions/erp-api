@@ -2,3 +2,8 @@ export * from './auth.dto';
 export * from './user.dto';
 export * from './role.dto';
 export * from './access.dto';
+export * from './unit.dto';
+export * from './product.dto';
+export * from './category.dto';
+export * from './warehouse.dto';
+export * from './pagination.dto';

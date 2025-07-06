@@ -1,15 +1,15 @@
 import {
   IsBoolean,
-  IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsOptional,
-  IsPhoneNumber,
   IsString,
   MinLength,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { PaginationDto } from './pagination.dto';
+import { Transform } from 'class-transformer';
 
 export enum GenderEnum {
   MALE = 'MALE',
@@ -18,11 +18,11 @@ export enum GenderEnum {
 
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   firstName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   lastName: string;
 
   @IsString()
@@ -38,7 +38,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @IsPhoneNumber()
+  @IsString()
   @IsNotEmpty()
   phoneNumber: string;
 
@@ -59,11 +59,14 @@ export class CreateUserDto {
   birthPlace?: string;
 
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.toUpperCase() : value,
+  )
   @IsEnum(GenderEnum)
   gender?: GenderEnum;
 
   @IsOptional()
-  @IsDateString()
+  @IsString()
   joinAt?: string;
 
   @IsOptional()
@@ -75,3 +78,21 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
+
+export class UserQueryDto extends PaginationDto {
+  @IsOptional()
+  @IsString()
+  joinAt?: string;
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.toUpperCase() : value,
+  )
+  @IsEnum(GenderEnum)
+  gender?: GenderEnum;
+  @IsOptional()
+  @IsString()
+  roleId?: string;
+  @IsString()
+  @IsOptional()
+  active?: string;
+}

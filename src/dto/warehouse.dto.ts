@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
+import { PaginationDto } from './pagination.dto';
 
 export class WarehouseDto {
   @IsString()
@@ -13,3 +14,5 @@ export class WarehouseDto {
   @IsNotEmpty()
   address: string;
 }
+
+export class WarehouseQueryDto extends PaginationDto {}

@@ -8,6 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { AccessDto } from './access.dto';
+import { PaginationDto } from './pagination.dto';
 
 export class CreateRoleDto {
   @IsString()
@@ -19,7 +20,6 @@ export class CreateRoleDto {
   code: string;
 
   @IsBoolean()
-  @IsOptional()
   active: boolean;
 
   @IsOptional()
@@ -27,4 +27,10 @@ export class CreateRoleDto {
   @ValidateNested({ each: true })
   @Type(() => AccessDto)
   accesses?: AccessDto[];
+}
+
+export class RoleQueryDto extends PaginationDto {
+  @IsString()
+  @IsOptional()
+  active?: string;
 }

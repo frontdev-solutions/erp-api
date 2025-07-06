@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PaginationDto } from './pagination.dto';
 
 export class CategoryDto {
   @IsString()
@@ -7,4 +8,10 @@ export class CategoryDto {
   @IsString()
   @IsNotEmpty()
   code: string;
+}
+
+export class CategoryQueryDto extends PaginationDto {
+  @IsString()
+  @IsOptional()
+  productId?: string;
 }
