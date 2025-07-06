@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UnitConversion } from '@prisma/client';
-import { PaginationDto } from 'src/dto/pagination.dto';
-import { ProductDto } from 'src/dto/product.dto';
+import { Prisma, UnitConversion } from '@prisma/client';
+import { ProductDto, ProductQueryDto } from 'src/dto';
 import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -324,8 +323,17 @@ export class ProductService {
     });
   }
 
-  async getListProduct(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListProduct(query: ProductQueryDto) {
+    const {
+      page,
+      limit,
+      order,
+      orderBy,
+      keyword,
+      categoryId,
+      warehouseId,
+      price,
+    } = query;
 
     const allowedOrderFields = [
       'name',
@@ -340,9 +348,26 @@ export class ProductService {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
     }
 
+    const where: Prisma.ProductWhereInput = {
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { code: { contains: keyword, mode: 'insensitive' } },
+          { productSku: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+      ...(price !== undefined && { price: { equals: Number(price) } }),
+      ...(warehouseId && { warehouseId }),
+      ...(categoryId && { categoryId }),
+      // ...(active !== undefined && { active: active === 'true' }),
+    };
+
     const [total, products] = await this.prisma.$transaction([
-      this.prisma.product.count(),
+      this.prisma.product.count({
+        where,
+      }),
       this.prisma.product.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {
