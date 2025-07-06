@@ -9,8 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from 'src/dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { CreateUserDto, UpdateUserDto, UserQueryDto } from 'src/dto';
 
 @Controller()
 export class UsersController {
@@ -27,8 +26,8 @@ export class UsersController {
   }
 
   @Get('user')
-  getListUser(@Query() pagination: PaginationDto) {
-    return this.usersService.getListUser(pagination);
+  getListUser(@Query() query: UserQueryDto) {
+    return this.usersService.getListUser(query);
   }
 
   @Get('user/:id')

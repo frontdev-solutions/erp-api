@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto, UpdateUserDto } from 'src/dto';
+import { CreateUserDto, UpdateUserDto, UserQueryDto } from 'src/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { PaginationDto } from 'src/dto/pagination.dto';
 import { paginationMeta } from 'src/helpers/pagination';
+import { Gender, Prisma } from '@prisma/client';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UsersService {
@@ -39,26 +40,31 @@ export class UsersService {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const checkRole = await this.prisma.role.findUnique({
-      where: {
-        id: roleId,
-      },
-    });
+    if (roleId) {
+      const checkRole = await this.prisma.role.findUnique({
+        where: {
+          id: roleId,
+        },
+      });
 
-    if (!checkRole) {
-      throw new NotFoundException(`Role with ${roleId} not found!`);
+      if (!checkRole) {
+        throw new NotFoundException(`Role with ${roleId} not found!`);
+      }
     }
 
     const user = await this.prisma.user.create({
       data: {
-        firstName,
-        lastName,
+        firstName: firstName ?? null,
+        lastName: lastName ?? null,
         sureName,
         address,
         birthDate,
         birthPlace,
-        gender,
-        joinAt,
+        gender:
+          gender && typeof gender === 'string'
+            ? (gender.toUpperCase() as Gender)
+            : gender,
+        joinAt: joinAt ? dayjs(joinAt).toISOString() : null,
         password: hashPassword,
         email,
         phoneNumber,
@@ -75,6 +81,7 @@ export class UsersService {
       user: {
         ...user,
         password: undefined,
+        gender: gender.toLowerCase(),
       },
       meta: {
         version: '1.0.0',
@@ -99,14 +106,16 @@ export class UsersService {
       userImage,
     } = dto;
 
-    const checkRole = await this.prisma.role.findUnique({
-      where: {
-        id: roleId,
-      },
-    });
+    if (roleId) {
+      const checkRole = await this.prisma.role.findUnique({
+        where: {
+          id: roleId,
+        },
+      });
 
-    if (!checkRole) {
-      throw new NotFoundException(`Role with ${roleId} not found!`);
+      if (!checkRole) {
+        throw new NotFoundException(`Role with ${roleId} not found!`);
+      }
     }
 
     const checkUser = await this.prisma.user.findUnique({
@@ -124,14 +133,17 @@ export class UsersService {
         id,
       },
       data: {
-        firstName,
-        lastName,
+        firstName: firstName ?? null,
+        lastName: lastName ?? null,
         sureName,
         address,
         birthDate,
         birthPlace,
-        gender,
-        joinAt,
+        gender:
+          gender && typeof gender === 'string'
+            ? (gender.toUpperCase() as Gender)
+            : gender,
+        joinAt: joinAt ? dayjs(joinAt).toISOString() : null,
         email,
         phoneNumber,
         active,
@@ -148,6 +160,7 @@ export class UsersService {
         data: {
           ...userUpdate,
           password: undefined,
+          gender: gender.toLowerCase(),
         },
         meta: {
           version: '1.0.0',
@@ -156,17 +169,58 @@ export class UsersService {
     }
   }
 
-  async getListUser(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListUser(query: UserQueryDto) {
+    const {
+      page,
+      limit,
+      order,
+      orderBy,
+      keyword,
+      active,
+      gender,
+      joinAt,
+      roleId,
+    } = query;
 
     const allowedOrderFields = ['name', 'email', 'createdAt', 'updatedAt'];
 
     if (!allowedOrderFields.includes(orderBy)) {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
     }
+
+    const where: Prisma.UserWhereInput = {
+      ...(keyword && {
+        OR: [
+          { firstName: { contains: keyword, mode: 'insensitive' } },
+          { lastName: { contains: keyword, mode: 'insensitive' } },
+          { sureName: { contains: keyword, mode: 'insensitive' } },
+          { phoneNumber: { contains: keyword, mode: 'insensitive' } },
+          { email: { contains: keyword, mode: 'insensitive' } },
+          { address: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+      ...(gender && {
+        gender:
+          gender && typeof gender === 'string'
+            ? (gender.toUpperCase() as Gender)
+            : gender,
+      }),
+      ...(roleId && { roleId }),
+      ...(joinAt && {
+        joinAt: {
+          equals: joinAt && dayjs(joinAt).toISOString(),
+        },
+      }),
+      ...(active !== undefined && {
+        active:
+          active === 'true' ? true : active === 'false' ? false : undefined,
+      }),
+    };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
       this.prisma.user.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {
@@ -181,6 +235,7 @@ export class UsersService {
     const dropPassword = data.map((data) => ({
       ...data,
       password: undefined,
+      gender: data.gender.toLowerCase(),
     }));
 
     return {
@@ -209,7 +264,7 @@ export class UsersService {
     }
 
     return {
-      data: userDetail,
+      data: { ...userDetail, gender: userDetail.gender.toLowerCase() },
       meta: {
         version: '1.0.0',
       },
