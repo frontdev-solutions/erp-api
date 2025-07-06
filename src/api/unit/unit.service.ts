@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PaginationDto } from 'src/dto/pagination.dto';
-import { UnitConversionDto, UnitDto } from 'src/dto/unit.dto';
+import { Prisma } from '@prisma/client';
+import { UnitConversionDto, UnitDto, UnitQueryDto } from 'src/dto';
 import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -143,12 +143,49 @@ export class UnitService {
     };
   }
 
-  async getListUnit(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListUnit(query: UnitQueryDto) {
+    const { page, limit, order, orderBy, keyword, manualConversion } = query;
+
+    const allowedOrderFields = ['name', 'code', 'createdAt', 'updatedAt'];
+
+    if (!allowedOrderFields.includes(orderBy)) {
+      throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
+    }
+
+    const isManual =
+      manualConversion === 'true'
+        ? true
+        : manualConversion === 'false'
+          ? false
+          : undefined;
+
+    const where: Prisma.UnitWhereInput = {
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { code: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+      ...(isManual !== undefined &&
+        (isManual
+          ? {
+              OR: [
+                { fromConversions: { some: { isManual: true } } },
+                { toConversions: { some: { isManual: true } } },
+              ],
+            }
+          : {
+              AND: [
+                { fromConversions: { none: { isManual: true } } },
+                { toConversions: { none: { isManual: true } } },
+              ],
+            })),
+    };
 
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.unit.count(),
+      this.prisma.unit.count({ where }),
       this.prisma.unit.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {

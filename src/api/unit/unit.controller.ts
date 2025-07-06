@@ -9,8 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
-import { UnitConversionDto, UnitDto } from 'src/dto/unit.dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { UnitConversionDto, UnitDto, UnitQueryDto } from 'src/dto';
 
 @Controller()
 export class UnitController {
@@ -39,8 +38,8 @@ export class UnitController {
   }
 
   @Get('unit')
-  async getListUnit(@Query() pagination: PaginationDto) {
-    return this.unitService.getListUnit(pagination);
+  async getListUnit(@Query() query: UnitQueryDto) {
+    return this.unitService.getListUnit(query);
   }
 
   @Get('unit/:id')
