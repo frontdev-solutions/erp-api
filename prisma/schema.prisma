@@ -9,8 +9,8 @@ datasource db {
 
 model User {
   id            String          @unique @default(uuid())
-  firstName     String
-  lastName      String
+  firstName     String?
+  lastName      String?
   sureName      String
   phoneNumber   String
   password      String
