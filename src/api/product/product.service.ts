@@ -17,6 +17,7 @@ export class ProductService {
       price,
       productSku,
       baseUnitId,
+      categoryId,
       smallestUnitId,
       isManual,
       factor,
@@ -30,7 +31,7 @@ export class ProductService {
     ]);
 
     if (!baseUnit || !smallestUnit) {
-      throw new NotFoundException('Base unit or smallest unit not found.');
+      throw new NotFoundException('Base unit or smallest unit not found!');
     }
 
     // 2. Validasi isManual
@@ -54,6 +55,22 @@ export class ProductService {
 
     // 4. Jalankan transaksi
     return this.prisma.$transaction(async (tx) => {
+      if (!categoryId) {
+        throw new NotFoundException('Category ID is required');
+      }
+
+      if (typeof categoryId !== 'string') {
+        throw new NotFoundException('Category ID must be a valid string');
+      }
+
+      const category = await this.prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+
+      if (!category) {
+        throw new NotFoundException(`Category with ${categoryId} not found!`);
+      }
+
       // 4a. Insert produk
       const product = await tx.product.create({
         data: {
@@ -63,11 +80,13 @@ export class ProductService {
           code,
           productSku,
           smallestUnitId,
+          categoryId,
           warehouseId: warehouseId ?? null,
         },
         include: {
           smallestUnit: true,
           warehouse: true,
+          category: true,
         },
       });
 
@@ -151,6 +170,7 @@ export class ProductService {
       code,
       productSku,
       baseUnitId,
+      categoryId,
       smallestUnitId,
       isManual,
       factor,
@@ -164,7 +184,7 @@ export class ProductService {
     ]);
 
     if (!baseUnit || !smallestUnit) {
-      throw new NotFoundException('Base unit or smallest unit not found.');
+      throw new NotFoundException('Base unit or smallest unit not found!');
     }
 
     // 2. Validasi isManual
@@ -195,6 +215,23 @@ export class ProductService {
       if (!checkProduct) {
         throw new NotFoundException(`Product with ${id} not found!`);
       }
+
+      if (!categoryId) {
+        throw new NotFoundException('Category ID is required');
+      }
+
+      if (typeof categoryId !== 'string') {
+        throw new NotFoundException('Category ID must be a valid string');
+      }
+
+      const category = await this.prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+
+      if (!category) {
+        throw new NotFoundException(`Category with ${categoryId} not found!`);
+      }
+
       // 4a. Update produk
       const product = await tx.product.update({
         where: { id },
@@ -204,12 +241,14 @@ export class ProductService {
           price,
           code,
           productSku,
+          categoryId,
           smallestUnitId,
           warehouseId: warehouseId ?? null,
         },
         include: {
           smallestUnit: true,
           warehouse: true,
+          category: true,
         },
       });
 
@@ -312,6 +351,7 @@ export class ProductService {
         include: {
           smallestUnit: true,
           warehouse: true,
+          category: true,
         },
       }),
     ]);
@@ -367,11 +407,12 @@ export class ProductService {
       include: {
         warehouse: true,
         smallestUnit: true,
+        category: true,
       },
     });
 
     if (!product) {
-      throw new NotFoundException(`Product with id ${id} not found!`);
+      throw new NotFoundException(`Product with ${id} not found!`);
     }
 
     const factorUnit = await this.prisma.unitConversion.findFirst({

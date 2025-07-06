@@ -29,6 +29,9 @@ export class ProductDto {
   @IsNotEmpty()
   baseUnitId: string;
   @IsString()
+  @IsNotEmpty()
+  categoryId: string;
+  @IsString()
   @IsOptional()
   warehouseId?: string;
   @IsNumber()
