@@ -7,6 +7,7 @@ import { BusinessModule } from './api/business/business.module';
 import { WarehouseModule } from './api/warehouse/warehouse.module';
 import { ProductModule } from './api/product/product.module';
 import { UnitModule } from './api/unit/unit.module';
+import { CategoryModule } from './api/category/category.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UnitModule } from './api/unit/unit.module';
     BusinessModule,
     WarehouseModule,
     ProductModule,
+    CategoryModule,
     UnitModule,
   ],
 })
