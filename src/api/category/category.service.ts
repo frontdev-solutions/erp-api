@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CategoryDto } from 'src/dto/category.dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { Prisma } from '@prisma/client';
+import { CategoryDto, CategoryQueryDto } from 'src/dto';
 import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -57,8 +57,8 @@ export class CategoryService {
     };
   }
 
-  async getListCategory(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListCategory(query: CategoryQueryDto) {
+    const { page, limit, order, orderBy, keyword, productId } = query;
 
     const allowedOrderFields = ['name', 'code', 'createdAt', 'updatedAt'];
 
@@ -66,9 +66,22 @@ export class CategoryService {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
     }
 
+    const where: Prisma.CategoryWhereInput = {
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { code: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+      ...(productId && { productId }),
+    };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.category.count(),
+      this.prisma.category.count({
+        where,
+      }),
       this.prisma.category.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {

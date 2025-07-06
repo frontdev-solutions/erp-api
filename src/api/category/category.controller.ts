@@ -9,8 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { CategoryDto } from 'src/dto/category.dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { CategoryDto, CategoryQueryDto } from 'src/dto';
 
 @Controller()
 export class CategoryController {
@@ -27,8 +26,8 @@ export class CategoryController {
   }
 
   @Get('category')
-  getListCategory(@Query() pagination: PaginationDto) {
-    return this.categoryService.getListCategory(pagination);
+  getListCategory(@Query() query: CategoryQueryDto) {
+    return this.categoryService.getListCategory(query);
   }
 
   @Get('category/:id')
