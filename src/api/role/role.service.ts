@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateRoleDto } from 'src/dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { Prisma } from '@prisma/client';
+import { CreateRoleDto, RoleQueryDto } from 'src/dto';
 import { paginationMeta } from 'src/helpers/pagination';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -131,8 +131,8 @@ export class RoleService {
     };
   }
 
-  async getListRole(pagination: PaginationDto) {
-    const { page, limit, order, orderBy } = pagination;
+  async getListRole(query: RoleQueryDto) {
+    const { page, limit, order, orderBy, keyword, active } = query;
 
     const allowedOrderFields = ['name', 'code', 'createdAt', 'updatedAt'];
 
@@ -140,9 +140,23 @@ export class RoleService {
       throw new NotFoundException(`Invalid orderBy field: ${orderBy}`);
     }
 
+    const where: Prisma.RoleWhereInput = {
+      ...(keyword && {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { code: { contains: keyword, mode: 'insensitive' } },
+        ],
+      }),
+      ...(active !== undefined && {
+        active:
+          active === 'true' ? true : active === 'false' ? false : undefined,
+      }),
+    };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.role.count(),
+      this.prisma.role.count({ where }),
       this.prisma.role.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: {

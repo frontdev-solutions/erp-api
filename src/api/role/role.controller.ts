@@ -9,8 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
-import { CreateRoleDto } from 'src/dto';
-import { PaginationDto } from 'src/dto/pagination.dto';
+import { CreateRoleDto, RoleQueryDto } from 'src/dto';
 
 @Controller()
 export class RoleController {
@@ -27,8 +26,8 @@ export class RoleController {
   }
 
   @Get('role')
-  getListRole(@Query() pagination: PaginationDto) {
-    return this.roleService.getListRole(pagination);
+  getListRole(@Query() query: RoleQueryDto) {
+    return this.roleService.getListRole(query);
   }
 
   @Get('role/:id')
