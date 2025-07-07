@@ -9,19 +9,19 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, UserQueryDto } from 'src/dto';
+import { UserDto, UserQueryDto } from 'src/dto';
 
 @Controller()
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post('user')
-  createUser(@Body() dto: CreateUserDto) {
+  createUser(@Body() dto: UserDto) {
     return this.usersService.createUser(dto);
   }
 
   @Put('user/:id')
-  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+  updateUser(@Param('id') id: string, @Body() dto: UserDto) {
     return this.usersService.updateUser(id, dto);
   }
 

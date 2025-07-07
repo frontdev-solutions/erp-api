@@ -16,7 +16,7 @@ model User {
   password      String
   email         String          @unique
   address       String?
-  birthDate     String?
+  birthDate     DateTime?
   birthPlace    String?
   gender        Gender?
   joinAt        DateTime?

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto, UpdateUserDto, UserQueryDto } from 'src/dto';
+import { UserDto, UserQueryDto } from 'src/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { paginationMeta } from 'src/helpers/pagination';
@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(dto: CreateUserDto) {
+  async createUser(dto: UserDto) {
     const {
       firstName,
       lastName,
@@ -89,7 +89,7 @@ export class UsersService {
     };
   }
 
-  async updateUser(id: string, dto: UpdateUserDto) {
+  async updateUser(id: string, dto: UserDto) {
     const {
       firstName,
       lastName,

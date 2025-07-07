@@ -10,17 +10,20 @@ import {
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { UnitConversionDto, UnitDto, UnitQueryDto } from 'src/dto';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller()
 export class UnitController {
   constructor(private unitService: UnitService) {}
 
   /* Unit Conversion Service */
+  @ApiExcludeEndpoint()
   @Post('unit-conversion')
   async createUnitConversion(@Body() dto: UnitConversionDto) {
     return this.unitService.createUnitConversion(dto);
   }
 
+  @ApiExcludeEndpoint()
   @Get('unit-conversion')
   async getListUnitConverstion() {
     return this.unitService.getListUnitConverstion();

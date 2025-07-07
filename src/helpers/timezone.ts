@@ -42,3 +42,6 @@ export class TimezoneInterceptor implements NestInterceptor {
     return obj;
   }
 }
+
+export const createdAtWIB = (date: string | Date) =>
+  dayjs(date).tz('Asia/Jakarta').format();

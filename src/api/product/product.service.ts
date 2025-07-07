@@ -49,6 +49,18 @@ export class ProductService {
       );
     }
 
+    if (qty === undefined || qty === null) {
+      throw new NotFoundException('Qty is required');
+    }
+
+    if (typeof qty !== 'number' || isNaN(qty)) {
+      throw new NotFoundException('Qty must be a valid number');
+    }
+
+    if (qty < 0) {
+      throw new NotFoundException('Qty value must be greater than 0');
+    }
+
     // 3. Hitung qty konversi
     const qtySmallestUnit = qty * conversionFactor;
 
@@ -200,6 +212,18 @@ export class ProductService {
         baseUnitId,
         smallestUnitId,
       );
+    }
+
+    if (qty === undefined || qty === null) {
+      throw new NotFoundException('Qty is required');
+    }
+
+    if (typeof qty !== 'number' || isNaN(qty)) {
+      throw new NotFoundException('Qty must be a valid number');
+    }
+
+    if (qty < 0) {
+      throw new NotFoundException('Qty value must be greater than 0');
     }
 
     // 3. Hitung qty konversi
