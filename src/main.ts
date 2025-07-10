@@ -10,6 +10,16 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Service ERP - API Documentation')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'access-token', // key name untuk reference nanti
+    )
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-documentation', app, documentFactory);
