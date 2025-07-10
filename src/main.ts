@@ -18,11 +18,15 @@ async function bootstrap() {
         name: 'Authorization',
         in: 'header',
       },
-      'access-token', // key name untuk reference nanti
+      'bearer',
     )
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-documentation', app, documentFactory);
+  const documentApi = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-documentation', app, documentApi, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
