@@ -10,8 +10,9 @@ import {
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { UnitConversionDto, UnitDto, UnitQueryDto } from 'src/dto';
-import { ApiExcludeEndpoint } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt-token')
 @Controller()
 export class UnitController {
   constructor(private unitService: UnitService) {}

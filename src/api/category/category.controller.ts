@@ -7,10 +7,13 @@ import {
   Post,
   Put,
   Query,
+  // UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CategoryDto, CategoryQueryDto } from 'src/dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt-token')
 @Controller()
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}

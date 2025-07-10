@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ProductDto, ProductQueryDto } from 'src/dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt-token')
 @Controller()
 export class ProductController {
   constructor(private productService: ProductService) {}

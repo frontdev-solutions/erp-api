@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { WarehouseService } from './warehouse.service';
 import { WarehouseDto, WarehouseQueryDto } from 'src/dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt-token')
 @Controller()
 export class WarehouseController {
   constructor(private warehouseService: WarehouseService) {}

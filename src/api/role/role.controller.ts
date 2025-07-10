@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto, RoleQueryDto } from 'src/dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt-token')
 @Controller()
 export class RoleController {
   constructor(private roleService: RoleService) {}

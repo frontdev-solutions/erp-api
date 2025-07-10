@@ -18,7 +18,7 @@ async function bootstrap() {
         name: 'Authorization',
         in: 'header',
       },
-      'bearer',
+      'jwt-token',
     )
     .build();
   const documentApi = () => SwaggerModule.createDocument(app, config);
