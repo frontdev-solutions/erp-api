@@ -43,22 +43,32 @@ export class AllExceptionsFilter implements ExceptionFilter {
     else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const responseBody = exception.getResponse();
-      if (typeof responseBody === 'string') {
+
+      if (status === HttpStatus.NOT_FOUND) {
+        message = 'Route not found';
+        title = 'Not Found';
+      } else if (typeof responseBody === 'string') {
         message = responseBody;
       } else if (typeof responseBody === 'object' && responseBody !== null) {
         if (
           typeof responseBody === 'object' &&
           responseBody !== null &&
-          'message' in responseBody
+          'message' in responseBody &&
+          typeof (responseBody as Record<string, unknown>).message === 'string'
         ) {
-          message = (responseBody as { message?: string }).message || message;
+          message =
+            ((responseBody as Record<string, unknown>).message as string) ||
+            message;
         }
         if (
           typeof responseBody === 'object' &&
           responseBody !== null &&
-          'error' in responseBody
+          'error' in responseBody &&
+          typeof (responseBody as Record<string, unknown>).error === 'string'
         ) {
-          title = (responseBody as { error?: string }).error || title;
+          title =
+            ((responseBody as Record<string, unknown>).error as string) ||
+            title;
         }
       }
     }
