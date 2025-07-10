@@ -8,6 +8,8 @@ import { WarehouseModule } from './api/warehouse/warehouse.module';
 import { ProductModule } from './api/product/product.module';
 import { UnitModule } from './api/unit/unit.module';
 import { CategoryModule } from './api/category/category.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './helpers/jwt-token';
 
 @Module({
   imports: [
@@ -20,6 +22,12 @@ import { CategoryModule } from './api/category/category.module';
     ProductModule,
     CategoryModule,
     UnitModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
