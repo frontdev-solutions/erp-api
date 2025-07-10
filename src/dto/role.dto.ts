@@ -54,7 +54,6 @@ export class RoleQueryDto extends PaginationDto {
   @IsOptional()
   @ApiProperty({
     required: false,
-    default: true,
     type: 'boolean',
   })
   active?: string;

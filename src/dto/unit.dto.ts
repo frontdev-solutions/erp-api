@@ -64,7 +64,6 @@ export class UnitDto {
 
 export class UnitQueryDto extends PaginationDto {
   @ApiProperty({
-    default: true,
     type: 'boolean',
     required: false,
   })
