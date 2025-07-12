@@ -4,9 +4,11 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { ROLES_KEY } from 'src/decotator/roles.decotator';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -42,8 +44,31 @@ export class JwtAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (
+        typeof decoded !== 'object' ||
+        decoded === null ||
+        !('role' in decoded)
+      ) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      const payload = decoded as jwt.JwtPayload & { role: string };
+
       request['user'] = payload;
+
+      const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+        ROLES_KEY,
+        [context.getHandler(), context.getClass()],
+      );
+
+      if (
+        requiredRoles &&
+        !requiredRoles.some((role) => payload.role?.includes(role))
+      ) {
+        throw new NotFoundException('Forbidden role access');
+      }
+
       return true;
     } catch {
       throw new UnauthorizedException('Invalid token');
