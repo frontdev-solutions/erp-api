@@ -21,6 +21,22 @@ export const signJwt = (payload: object, options = {}) => {
     ...options,
   });
 };
+export function getPayload(req: Request): any {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedException('Token is missing or invalid');
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded as any;
+  } catch {
+    throw new UnauthorizedException('Token verification failed');
+  }
+}
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -44,7 +60,7 @@ export class JwtAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       if (
         typeof decoded !== 'object' ||
         decoded === null ||
