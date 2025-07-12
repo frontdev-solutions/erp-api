@@ -10,6 +10,7 @@ import { UnitModule } from './api/unit/unit.module';
 import { CategoryModule } from './api/category/category.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './helpers/jwt-token';
+import { ClientModule } from './api/client/client.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from './helpers/jwt-token';
     ProductModule,
     CategoryModule,
     UnitModule,
+    ClientModule,
   ],
   providers: [
     {
