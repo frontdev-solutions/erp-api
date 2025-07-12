@@ -9,22 +9,22 @@ datasource db {
 
 model User {
   id            String          @unique @default(uuid())
-  firstName     String?
-  lastName      String?
-  sureName      String
   phoneNumber   String
   password      String
   email         String          @unique
-  address       String?
-  birthDate     DateTime?
-  birthPlace    String?
-  gender        Gender?
-  joinAt        DateTime?
   roleId        String?
   updatedAt     DateTime        @updatedAt
   createdAt     DateTime        @default(now())
   userImage     String?
   active        Boolean         @default(true)
+  address       String?
+  birthPlace    String?
+  gender        Gender?
+  joinAt        DateTime?
+  firstName     String?
+  lastName      String?
+  sureName      String
+  birthDate     DateTime?
   orders        Order[]
   role          Role?           @relation(fields: [roleId], references: [id], onDelete: Cascade)
   visitOnClient VisitOnClient[]
@@ -32,11 +32,11 @@ model User {
 
 model Role {
   id        String           @unique @default(uuid())
-  code      String           @unique
   name      String           @unique
   updatedAt DateTime         @updatedAt
   createdAt DateTime         @default(now())
   active    Boolean          @default(true)
+  code      String           @unique
   accesses  AccessesOnRole[]
   users     User[]
 }
@@ -67,29 +67,29 @@ model AccessesOnRole {
 model Warehouse {
   id        String    @unique @default(uuid())
   name      String
-  code      String    @unique
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
   address   String
+  code      String    @unique
   products  Product[]
 }
 
 model Product {
   id             String           @unique @default(uuid())
   name           String
-  code           String           @unique
   qty            Int
   price          Float
   updateAt       DateTime         @updatedAt
   createdAt      DateTime         @default(now())
-  categoryId     String
   warehouseId    String?
   productSku     String
   smallestUnitId String
+  code           String           @unique
+  categoryId     String
   orderItems     OrderItem[]
+  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   smallestUnit   Unit             @relation(fields: [smallestUnitId], references: [id], onDelete: Cascade)
   warehouse      Warehouse?       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   unitConversion UnitConversion[]
 }
 
@@ -97,17 +97,17 @@ model Category {
   id        String    @unique @default(uuid())
   name      String
   code      String    @unique
-  product   Product[]
   updateAt  DateTime  @updatedAt
   createdAt DateTime  @default(now())
+  product   Product[]
 }
 
 model Unit {
   id              String           @id @default(uuid())
-  code            String           @unique
   name            String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  code            String           @unique
   products        Product[]
   fromConversions UnitConversion[] @relation("FromUnit")
   toConversions   UnitConversion[] @relation("ToUnit")
@@ -120,8 +120,8 @@ model UnitConversion {
   factor     Float
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  isManual   Boolean  @default(false)
   productId  String?
+  isManual   Boolean  @default(false)
   fromUnit   Unit     @relation("FromUnit", fields: [fromUnitId], references: [id])
   product    Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   toUnit     Unit     @relation("ToUnit", fields: [toUnitId], references: [id])
@@ -133,6 +133,9 @@ model Client {
   location      String
   updateAt      DateTime        @updatedAt
   createdAt     DateTime        @default(now())
+  storeName     String
+  latitude      Float
+  longitude     Float
   orders        Order[]
   visitOnClient VisitOnClient[]
 }
@@ -164,16 +167,16 @@ model OrderItem {
 }
 
 model VisitOnClient {
-  id         String   @unique @default(uuid())
-  userId     String
-  clientId   String
-  userImage  String
-  latitude   Float
-  longtitude Float
-  updatedAt  DateTime @updatedAt
-  createdAt  DateTime @default(now())
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @unique @default(uuid())
+  userId    String
+  clientId  String
+  userImage String
+  latitude  Float
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  longitude Float
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum AccessAction {
