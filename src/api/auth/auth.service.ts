@@ -20,10 +20,14 @@ export class AuthService {
       },
     });
 
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
     const passwordCompare = bcrypt.compareSync(password, user.password);
 
-    if (!user || !passwordCompare) {
-      throw new NotFoundException('User not found!');
+    if (!passwordCompare) {
+      throw new NotFoundException('Invalid credentials!');
     }
 
     const expiresIn = 432000;
@@ -32,7 +36,66 @@ export class AuthService {
       {
         id: user.id,
         email: user.email,
-        password: user.password,
+        role: user.role.code ?? null,
+      },
+      {
+        expiresIn,
+      },
+    );
+
+    return {
+      data: {
+        user: {
+          ...user,
+          password: undefined,
+        },
+        accessToken: {
+          token,
+          expiresIn: `${expiresIn}s`,
+        },
+      },
+      meta: {
+        version: '1.0.0',
+      },
+    };
+  }
+
+  async loginSales(dto: LoginDto) {
+    const { email, password } = dto;
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+        active: true,
+        role: {
+          code: {
+            contains: 'sales',
+            mode: 'insensitive',
+          },
+        },
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
+    const passwordCompare = bcrypt.compareSync(password, user.password);
+
+    if (!passwordCompare) {
+      throw new NotFoundException('Invalid credentials!');
+    }
+
+    const expiresIn = 432000;
+
+    const token = signJwt(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role.code,
       },
       {
         expiresIn,
