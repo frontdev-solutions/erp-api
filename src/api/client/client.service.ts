@@ -163,7 +163,10 @@ export class ClientService {
         where: {
           id: userId,
           role: {
-            code: 'sales',
+            code: {
+              contains: 'sales',
+              mode: 'insensitive',
+            },
           },
           active: true,
         },
@@ -211,7 +214,7 @@ export class ClientService {
 
     const getDistanceClient = getDistance(clientDistance, visitSalesDistance);
 
-    if (getDistanceClient > 10) {
+    if (getDistanceClient > 30) {
       throw new NotFoundException('You are too far from the client location');
     }
 
