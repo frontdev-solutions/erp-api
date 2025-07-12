@@ -11,6 +11,8 @@ import { CategoryModule } from './api/category/category.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './helpers/jwt-token';
 import { ClientModule } from './api/client/client.module';
+import { MediaModule } from './api/media/media.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -24,6 +26,15 @@ import { ClientModule } from './api/client/client.module';
     CategoryModule,
     UnitModule,
     ClientModule,
+    MediaModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 6000,
+          limit: 10,
+        },
+      ],
+    }),
   ],
   providers: [
     {
