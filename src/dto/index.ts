@@ -8,3 +8,4 @@ export * from './category.dto';
 export * from './warehouse.dto';
 export * from './pagination.dto';
 export * from './client.dto';
+export * from './media.dto';
