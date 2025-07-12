@@ -13,4 +13,10 @@ export class AuthController {
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
+
+  @Public()
+  @Post('login-sales')
+  loginSales(@Body() dto: LoginDto) {
+    return this.authService.loginSales(dto);
+  }
 }
