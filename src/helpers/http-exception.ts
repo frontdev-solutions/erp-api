@@ -44,7 +44,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const responseBody = exception.getResponse();
 
-      if (status === HttpStatus.NOT_FOUND) {
+      // Cek jika responseBody adalah string dan isinya seperti "Cannot GET /"
+      if (
+        status === HttpStatus.NOT_FOUND &&
+        typeof responseBody === 'string' &&
+        responseBody.startsWith('Cannot ')
+      ) {
+        // Ini berarti route tidak ditemukan
         message = 'Route not found';
         title = 'Not Found';
       } else if (typeof responseBody === 'string') {
