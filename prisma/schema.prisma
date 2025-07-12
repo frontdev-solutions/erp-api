@@ -172,7 +172,6 @@ model VisitOnClient {
   clientId  String
   userImage String
   latitude  Float
-  updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   longitude Float
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
