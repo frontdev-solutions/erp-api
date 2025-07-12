@@ -4,9 +4,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './helpers/http-exception';
 import { TimezoneInterceptor } from './helpers/timezone';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { useConfig } from './utils/useConfig';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const { isDev } = useConfig();
   const config = new DocumentBuilder()
     .setTitle('Service ERP - API Documentation')
     .setVersion('1.0')
@@ -22,11 +25,14 @@ async function bootstrap() {
     )
     .build();
   const documentApi = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-documentation', app, documentApi, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  if (isDev) {
+    SwaggerModule.setup('api-documentation', app, documentApi, {
+      customSiteTitle: 'ERP Documentation',
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -39,6 +45,7 @@ async function bootstrap() {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true,
   });
   await app.listen(process.env.PORT);
 }
