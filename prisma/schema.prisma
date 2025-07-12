@@ -179,6 +179,16 @@ model VisitOnClient {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Media {
+  id        String   @unique @default(uuid())
+  fileName  String
+  url       String
+  type      String
+  ownerId   String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 enum AccessAction {
   CREATE
   READ
